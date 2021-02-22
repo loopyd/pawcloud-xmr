@@ -34,6 +34,22 @@ growpart:
 # Files to write.
 write_files:
   # You should make a Private Netowrk and set your proxy as a static IP address for your mining nodes to point to.
+  - path /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+    content: |
+      network:
+        config: disabled
+  - path /etc/netplan/eth0.yaml
+    content: |
+      network:
+        version: 2
+        ethernets:
+          eth0:
+            dhcp4: true
+            match:
+              macaddress: 06:7b:5e:00:06:68
+            set-name: eth0
+            nameservers:
+              addresses: [8.8.8.8, 8.8.4.4]
   - path: /etc/netplan/eth1.yaml
     content: |
       network:

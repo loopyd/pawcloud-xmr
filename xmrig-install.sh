@@ -77,7 +77,7 @@ service procps force-reload
 # install service script
 sudo tee /usr/sbin/xmrnode.sh >/dev/null <<'EOF'
 #!/bin/bash
-MY_POOL="10.0.0.2:8443"
+MY_POOL="10.0.0.2:3333"
 MY_WALLET="46Z4T9pKPPv82ixGexhGZW9rmMHzPyLnU9ozhewcp8EbC2QagMtz2BKdiqTCx9wo1AiVbEt8R6w1J4ad8W6NpDzRJCxQUMG"
 pushd /home/xmrnode/xmrig
 tee /home/xmrnode/xmrig/config.json >/dev/null <<CONFIGEOF
@@ -110,7 +110,7 @@ tee /home/xmrnode/xmrig/config.json >/dev/null <<CONFIGEOF
 	  "nicehash": false,
 	  "keepalive": true,
 	  "enabled": true,
-	  "tls": true,
+	  "tls": false,
 	  "tls-fingerprint": null,
 	  "daemon": false,
 	  "socks5": null,
