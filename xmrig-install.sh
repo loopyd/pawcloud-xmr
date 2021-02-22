@@ -82,7 +82,7 @@ if [[ `id -nu` != "xmrnode" ]]; then
    exit 1
 fi
 MY_POOL="10.0.0.2:8443"
-MY_NODE_ID="`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 6 | head -n 1`"
+MY_NODE_ID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 6 | head -n 1)
 MY_WALLET="46Z4T9pKPPv82ixGexhGZW9rmMHzPyLnU9ozhewcp8EbC2QagMtz2BKdiqTCx9wo1AiVbEt8R6w1J4ad8W6NpDzRJCxQUMG"
 pushd /home/xmrnode/xmrig
 cat > /home/xmrnode/xmrig/config.json <<CONFIGEOF
