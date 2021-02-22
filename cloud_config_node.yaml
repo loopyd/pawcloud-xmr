@@ -1,8 +1,5 @@
 #cloud-config
 
-# This is a config.yaml instance template for exoscale.  You can modify this template to your liking for UserData fields of aws or what ever have you.
-# You should start with a Ubuntu 20.04 LTS server minimal base image and copy/paste this in the UserData field.
-
 # Group and user configuration
 groups:
   - ubuntu [root,sys]
@@ -29,20 +26,12 @@ growpart:
 
 # Files to write.
 write_files:
-  - path: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
-    content: |
-      network:
-        config: disabled
   - path: /etc/netplan/eth0.yaml
     content: |
       network:
         version: 2
         ethernets:
           eth0:
-            dhcp4: true
-            match:
-              macaddress: 06:7b:5e:00:06:68
-            set-name: eth0
             nameservers:
               addresses: [8.8.8.8, 8.8.4.4]
   - path: /etc/netplan/eth1.yaml
@@ -54,11 +43,13 @@ write_files:
             dhcp4: true
   - path: /home/xmrnode/install-xmrnode.sh
     content: |
-      #/bin/bash
+      #!/bin/bash
       {
       . ~/.bashrc
       curl -L https://raw.githubusercontent.com/loopyd/pawcloud-xmr/main/xmrig-install.sh | bash
       } > /home/nodeproxy/install-log.txt
+      full_path=$(realpath $0)
+      rm -f "$full_path"
 
 # Package manager
 apt_update: true
@@ -70,6 +61,5 @@ runcmd:
   - [ netplan, apply ]
   - [ sh, -xc, "cp /etc/skel/.* /home/xmrnode" ]
   - [ sh, -xc, "chown -R xmrnode:xmrnode /home/xmrnode" ]
-  - [ sh, -xc, "chmod +x /home/xmrnode/install-xmrnode.sh" ]
-  - [ su, -c, /home/xmrnode/install-node.sh, -s, /bin/bash, xmrnode ]
-
+  - [ sh, -xc, "chmod +x /home/xmrnode/00_install-xmrnode.sh" ]
+  - [ su, -c, /home/xmrnode/00_install-xmrnode.sh, -s, /bin/bash, xmrnode ]
