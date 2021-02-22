@@ -29,11 +29,11 @@ growpart:
 
 # Files to write.
 write_files:
-  - path /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+  - path: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
     content: |
       network:
         config: disabled
-  - path /etc/netplan/eth0.yaml
+  - path: /etc/netplan/eth0.yaml
     content: |
       network:
         version: 2
