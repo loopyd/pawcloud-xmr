@@ -75,18 +75,17 @@ EOF
 service procps force-reload
 
 # install service script
-sudo tee /usr/sbin/xmrnode.sh >/dev/null <<EOF
+sudo tee /usr/sbin/xmrnode.sh >/dev/null <<'EOF'
 #!/bin/bash
-if [[ `id -nu` != "xmrnode" ]];then
+if [[ `id -nu` != "xmrnode" ]]; then
    echo "Not xmrnode user, exiting.."
    exit 1
 fi
-SCRIPT_NAME=$(basename -- "$0")
-MY_POOL="stratum+ssl://pool.supportxmr.com:443"
-MY_NODE_ID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 6 | head -n 1)
+MY_POOL="10.0.0.2:8443"
+MY_NODE_ID="`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 6 | head -n 1`"
 MY_WALLET="46Z4T9pKPPv82ixGexhGZW9rmMHzPyLnU9ozhewcp8EbC2QagMtz2BKdiqTCx9wo1AiVbEt8R6w1J4ad8W6NpDzRJCxQUMG"
 pushd /home/xmrnode/xmrig
-cat <<CONFIGEOF > /home/xmrnode/xmrig/config.json
+cat > /home/xmrnode/xmrig/config.json <<CONFIGEOF
 {
 "autosave": true,
 "background": false,
@@ -168,3 +167,4 @@ WantedBy=default.target
 EOF
 sudo systemctl daemon-reload
 sudo systemctl enable xmrnode.service
+sudo systemctl start xmrnode.service
