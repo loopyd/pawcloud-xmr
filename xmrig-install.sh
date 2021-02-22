@@ -77,15 +77,10 @@ service procps force-reload
 # install service script
 sudo tee /usr/sbin/xmrnode.sh >/dev/null <<'EOF'
 #!/bin/bash
-if [[ `id -nu` != "xmrnode" ]]; then
-   echo "Not xmrnode user, exiting.."
-   exit 1
-fi
 MY_POOL="10.0.0.2:8443"
-MY_NODE_ID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 6 | head -n 1)
 MY_WALLET="46Z4T9pKPPv82ixGexhGZW9rmMHzPyLnU9ozhewcp8EbC2QagMtz2BKdiqTCx9wo1AiVbEt8R6w1J4ad8W6NpDzRJCxQUMG"
 pushd /home/xmrnode/xmrig
-cat > /home/xmrnode/xmrig/config.json <<CONFIGEOF
+tee /home/xmrnode/xmrig/config.json >/dev/null <<CONFIGEOF
 {
 "autosave": true,
 "background": false,
@@ -110,7 +105,7 @@ cat > /home/xmrnode/xmrig/config.json <<CONFIGEOF
 	  "coin": null,
 	  "url": "${MY_POOL}",
 	  "user": "${MY_WALLET}",
-	  "pass": "pawcloud-${MY_NODE_ID}",
+	  "pass": "x",
 	  "rig-id": null,
 	  "nicehash": false,
 	  "keepalive": true,
@@ -152,14 +147,13 @@ sudo chmod u+x /usr/sbin/xmrnode.sh
 sudo tee /etc/systemd/system/xmrnode.service >/dev/null <<'EOF'
 [Unit]
 Description=PawCloud XMR Mining Service
-DefaultDependencies=no
 After=network.target
 
 [Service]
 Type=simple
 User=xmrnode
 Group=xmrnode
-ExecStart=/bin/bash /usr/sbin/xmrnode.sh
+ExecStart=/bin/bash -c "/usr/sbin/xmrnode.sh" 
 TimeoutStartSec=0
 
 [Install]
