@@ -1,0 +1,71 @@
+#cloud-config
+
+# This is a config.yaml instance template for exoscale.  You can modify this template to your liking for UserData fields of aws or what ever have you.
+# You should start with a Ubuntu 20.04 LTS server minimal base image and copy/paste this in the UserData field.
+
+# Networking configuration
+preserve_hostname: false
+hostname: pawcloud-proxy
+
+# Group and user configuration
+groups:
+  - ubuntu [root,sys]
+  - cloud-users
+  
+users:
+  - default
+  - name: nodeproxy
+    gecos: PawCloud XMR Proxy User
+    home: /home/nodeproxy
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    primary_group: nodeproxy
+    groups: cloud-users
+    plain_text_passwd: 'pawcloud-proxy1'
+    ssh_import_id: None
+    lock_passwd: false
+
+# Filesystem configuration
+growpart:
+    mode: auto
+    devices: ["/"]
+    ignore_growroot_disabled: false
+
+# Files to write.
+write_files:
+  # You should make a Private Netowrk and set your proxy as a static IP address for your mining nodes to point to.
+  - path: /etc/netplan/eth1.yaml
+    content: |
+      network:
+        version: 2
+        ethernets:
+          eth1:
+            addresses: [10.0.0.2/24]
+  - path: /home/nodeproxy/install-proxy.sh
+    content: |
+      #/bin/bash
+      {
+      . ~/.bashrc
+      curl -L https://raw.githubusercontent.com/loopyd/xmr-node-proxy/master/install.sh | bash
+      cd ~/xmr-node-proxy
+      pm2 start ./proxy.js --name=proxy --log-date-format="YYYY-MM-DD HH:mm Z"
+      pm2 save
+      } > /home/nodeproxy/install-log.txt
+  - path: /etc/hosts
+    content: |
+      127.0.0.1 localhost.localdomain localhost
+      10.0.0.2 pawcloud-proxy
+
+# Package manager
+apt_update: true
+apt_upgrade: true
+apt_reboot_if_required: false
+
+# Commands to run
+runcmd:
+  - [ netplan, apply ]
+  - [ sh, -xc, "cp /etc/skel/.* /home/nodeproxy" ]
+  - [ sh, -xc, "chown -R nodeproxy:nodeproxy /home/nodeproxy" ]
+  - [ sh, -xc, "chmod +x /home/nodeproxy/install-proxy.sh" ]
+  - [ su, -c, /home/nodeproxy/install-proxy.sh, -s, /bin/bash, nodeproxy ]
+
