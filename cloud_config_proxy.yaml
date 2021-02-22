@@ -30,12 +30,19 @@ growpart:
 
 # Files to write.
 write_files:
+  - path: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+    content: |
+      network: {config: disabled}
   - path: /etc/netplan/eth0.yaml
     content: |
       network:
         version: 2
         ethernets:
           eth0:
+            dhcp4: true
+            match:
+                macaddress: 06:89:84:00:03:33
+            set-name: eth0
             nameservers:
               addresses: [8.8.8.8, 8.8.4.4]
   - path: /etc/netplan/eth1.yaml
@@ -51,20 +58,75 @@ write_files:
       {
       . ~/.bashrc
       curl -L https://raw.githubusercontent.com/loopyd/xmr-node-proxy/master/install.sh | bash
-      } > /home/nodeproxy/install-log.txt
+      } > ~/install-log.txt
       full_path=$(realpath $0)
       rm -f "$full_path"
   - path: /home/nodeproxy/01_install-proxy.sh
     content: |
       #!/bin/bash
-      . ~/.bashrc
+      source ~/.profile
+      chmod u+x ~/.nvm/nvm.sh
+      source ~/.nvm/nvm.sh
       {
       cd ~/xmr-node-proxy
+      tee ./config.json >/dev/null <<'EOF'
+      {
+        "pools": [
+          {
+            "hostname": "pool.supportxmr.com",
+            "port": 9000,
+            "ssl": true,
+            "allowSelfSignedSSL": true,
+            "share": 100,
+            "username": "46Z4T9pKPPv82ixGexhGZW9rmMHzPyLnU9ozhewcp8EbC2QagMtz2BKdiqTCx9wo1AiVbEt8R6w1J4ad8W6NpDzRJCxQUMG",
+            "password": "proxy:nightwintertooth@gmail.com",
+            "keepAlive": true,
+            "coin": "xmr",
+            "default": true
+          }
+        ],
+        "listeningPorts": [
+          {
+            "port": 8443,
+            "ssl": true,
+            "diff": 1000,
+            "coin": "xmr"
+          },
+          {
+            "port": 3333,
+            "ssl": false,
+            "diff": 1000,
+            "coin": "xmr"
+          },
+          {
+            "port": 5555,
+            "ssl": false,
+            "diff": 5000,
+            "coin": "xmr"
+          },
+          {
+            "port": 7777,
+            "ssl": false,
+            "diff": 10000,
+            "coin": "xmr"
+          }
+        ],
+        "bindAddress": "10.0.0.2",
+        "daemonAddress": "127.0.0.1:18081",
+        "coinSettings": {
+          "xmr":{
+            "minDiff": 100,
+            "maxDiff": 300000,
+            "shareTargetTime": 15
+          }
+        }
+      }
+      EOF
       pm2 start ./proxy.js --name=proxy --log-date-format="YYYY-MM-DD HH:mm Z"
       pm2 save
-      } >> /home/nodeproxy/install-log.txt
+      } >> ~/install-log.txt
       full_path=$(realpath $0)
-      rm -f "$full_path"
+      rm -f $full_path
   - path: /etc/hosts
     content: |
       127.0.0.1 localhost.localdomain localhost
@@ -83,5 +145,4 @@ runcmd:
   - [ sh, -xc, "chmod +x /home/nodeproxy/00_install-proxy.sh" ]
   - [ sh, -xc, "chmod +x /home/nodeproxy/01_install-proxy.sh" ]
   - [ su, -c, /home/nodeproxy/00_install-proxy.sh, -s, /bin/bash, nodeproxy ]
-  - [ su, -c, /home/nodeproxy/01_install-proxy.sh, -s, /bin/bash, nodeproxy ]
-
+  - [ su, -, nodeproxy, -c, "~/01_install-proxy.sh" ]
