@@ -4,6 +4,18 @@
 preserve_hostname: false
 hostname: pawcloud-proxy
 
+manage_resolv_conf: true
+
+resolv_conf:
+  nameservers: ['8.8.4.4', '8.8.8.8']
+  searchdomains:
+    - ns1.pawcloud.com
+    - ns2.pawcloud.com
+  domain: pawcloud.com
+  options:
+    rotate: true
+    timeout: 1
+
 # Group and user configuration
 groups:
   - ubuntu [root,sys]
@@ -30,27 +42,29 @@ growpart:
 
 # Files to write.
 write_files:
-  - path: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
-    content: |
-      network: {config: disabled}
-  - path: /etc/netplan/eth0.yaml
+  - path: /etc/netplan/20-eth0_custom.yaml
     content: |
       network:
         version: 2
         ethernets:
           eth0:
-            dhcp4: true
             match:
-                macaddress: 06:89:84:00:03:33
+              name: eth0
             set-name: eth0
+            dhcp4: true
             nameservers:
+              search: [ns1.local, ns2.local]
               addresses: [8.8.8.8, 8.8.4.4]
-  - path: /etc/netplan/eth1.yaml
+  - path: /etc/netplan/21-eth1_custom.yaml
     content: |
       network:
         version: 2
         ethernets:
           eth1:
+            match:
+              name: eth1
+            set-name: eth1
+            dhcp4: false
             addresses: [10.0.0.2/24]
   - path: /home/nodeproxy/00_install-proxy.sh
     content: |
@@ -74,9 +88,9 @@ write_files:
         "pools": [
           {
             "hostname": "pool.supportxmr.com",
-            "port": 9000,
-            "ssl": true,
-            "allowSelfSignedSSL": true,
+            "port": 3333,
+            "ssl": false,
+            "allowSelfSignedSSL": false,
             "share": 100,
             "username": "46Z4T9pKPPv82ixGexhGZW9rmMHzPyLnU9ozhewcp8EbC2QagMtz2BKdiqTCx9wo1AiVbEt8R6w1J4ad8W6NpDzRJCxQUMG",
             "password": "proxy:nightwintertooth@gmail.com",
@@ -111,7 +125,7 @@ write_files:
             "coin": "xmr"
           }
         ],
-        "bindAddress": "10.0.0.2",
+        "bindAddress": "0.0.0.0",
         "daemonAddress": "127.0.0.1:18081",
         "coinSettings": {
           "xmr":{
@@ -127,15 +141,11 @@ write_files:
       } >> ~/install-log.txt
       full_path=$(realpath $0)
       rm -f $full_path
-  - path: /etc/hosts
-    content: |
-      127.0.0.1 localhost.localdomain localhost
-      10.0.0.2 pawcloud-proxy
 
 # Package manager
 apt_update: true
 apt_upgrade: true
-apt_reboot_if_required: false
+apt_reboot_if_required: true
 
 # Commands to run
 runcmd:

@@ -1,5 +1,7 @@
 #cloud-config
 
+# Exoscale template, change as needed per your instance config.  I would recommend making
+# sure the mac of your private network is correct
 # Group and user configuration
 groups:
   - ubuntu [root,sys]
@@ -29,26 +31,31 @@ write_files:
   - path: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
     content: |
       network: {config: disabled}
-  - path: /etc/netplan/eth0.yaml
+  - path: /etc/netplan/20-eth0_custom.yaml
     content: |
       network:
         version: 2
         ethernets:
           eth0:
-            dhcp4: true
             match:
-                macaddress: 06:89:84:00:03:33
+              name: eth0
             set-name: eth0
+            dhcp4: true
             nameservers:
+              search: [ns1.local, ns2.local]
               addresses: [8.8.8.8, 8.8.4.4]
-  - path: /etc/netplan/eth1.yaml
+  - path: /etc/netplan/21-eth1_custom.yaml
     content: |
       network:
         version: 2
         ethernets:
           eth1:
-            dhcp4: true
-  - path: /home/xmrnode/install-xmrnode.sh
+            match:
+              name: eth1
+            set-name: eth1
+            dhcp4: false
+            addresses: [10.0.0.2/24]
+  - path: /home/xmrnode/00-install_xmrnode.sh
     content: |
       #!/bin/bash
       {
@@ -68,5 +75,5 @@ runcmd:
   - [ netplan, apply ]
   - [ sh, -xc, "cp /etc/skel/.* /home/xmrnode" ]
   - [ sh, -xc, "chown -R xmrnode:xmrnode /home/xmrnode" ]
-  - [ sh, -xc, "chmod +x /home/xmrnode/00_install-xmrnode.sh" ]
-  - [ su, -c, /home/xmrnode/00_install-xmrnode.sh, -s, /bin/bash, xmrnode ]
+  - [ sh, -xc, "chmod +x /home/xmrnode/00-install_xmrnode.sh" ]
+  - [ su, -c, /home/xmrnode/00-install_xmrnode.sh, -s, /bin/bash, xmrnode ]
