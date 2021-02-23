@@ -68,7 +68,7 @@ write_files:
 # Package manager
 apt_update: true
 apt_upgrade: true
-apt_reboot_if_required: false
+apt_reboot_if_required: yes
 
 # Commands to run
 runcmd:
