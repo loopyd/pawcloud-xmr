@@ -1,8 +1,57 @@
 #cloud-config
 
-# Exoscale template, change as needed per your instance config.  I would recommend making
-# sure the mac of your private network is correct
-# Group and user configuration
+###########################################################################################################
+# EXOSCALE USERDATA TEMPLATE                                                      PawCloud-XMR
+#==========================================================================================================
+#
+#    Insert this into UserData when you make a new instance.  You should make a template out
+#    of this instance, as its your preconfigured 'prime node', using the exo command line.
+#    Then make an instance pool out of the template image.  Your nodes should all hook up
+#    to your proxy nicely.
+#
+# Virtual machine settings:
+#
+#     Hostname:       pawcloud-node
+#     OS:             Ubuntu 20.04 LTS
+#     Instance Type:  CPU Large 16 vCPU | GB 2 x 2198 MHz
+#     Disk:           10 GB
+#
+# These settings will need to be adjusted after the VM warms up:
+#
+#     Private Network:       pawcloud (if you don't have one, make one)
+#     Private Network Type:  Managed
+#     Private Network IP:    10.0.0.2
+#
+# Please note that warm up time on the prime node can take any where from 30 to 45 minutes
+# depending on exoscale's availability for shared cpus at the time you spawn an instance.
+# This, in the end is worth the trade off for better hashrate, as xmrig is being built against
+# the VMs kernel for the fastest speed/compatibility possible (400h/s -> 2.1kh/s just by
+# compiling on a 16 vCPU node for proper AES flags)
+#
+# <heavyr> *notices your nikoli tesla bulge* uwu
+#
+###########################################################################################################
+
+# Networking configuration - This makes the settings in the dash have no effect on cloud-init inside the vm
+#                            which is really what we want to do (i.e.: stop ourselfs from f**king things up!)
+preserve_hostname: false
+hostname: pawcloud-proxy
+
+manage_resolv_conf: true
+
+resolv_conf:
+  nameservers: ['8.8.4.4', '8.8.8.8']
+  searchdomains:
+    - ns1.pawcloud.com
+    - ns2.pawcloud.com
+  domain: pawcloud.com
+  options:
+    rotate: true
+    timeout: 1
+
+# Group and user configuration - I haven't had success modifying the default ubuntu user, it
+#                                seems to make exoscale's dash go BORK along with the ssh.
+#                                So we are just appending our app user.
 groups:
   - ubuntu [root,sys]
   - cloud-users

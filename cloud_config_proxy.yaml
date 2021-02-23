@@ -17,9 +17,9 @@
 #
 # These settings will need to be adjusted after the VM warms up:
 #
-#     Private Network:  pawcloud (if you don't have one, make one)
+#     Private Network:       pawcloud (if you don't have one, make one)
 #     Private Network Type:  Managed
-#     Private Network IP: 10.0.0.2
+#     Private Network IP:    10.0.0.2
 #
 # Please note that warm up time on the proxy can take up to 30 minutes, as your xmr-node-proxy
 # is being built from source against the VM's kernel (for speed).  The trade off is worth the
