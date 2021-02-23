@@ -53,15 +53,14 @@ write_files:
             match:
               name: eth1
             set-name: eth1
-            dhcp4: false
-            addresses: [10.0.0.2/24]
+            dhcp4: true
   - path: /home/xmrnode/00-install_xmrnode.sh
     content: |
       #!/bin/bash
       {
       . ~/.bashrc
       curl -L https://raw.githubusercontent.com/loopyd/pawcloud-xmr/main/xmrig-install.sh | bash
-      } > /home/nodeproxy/install-log.txt
+      } > /home/xmrnode/install-log.txt
       full_path=$(realpath $0)
       rm -f "$full_path"
 

@@ -1,6 +1,34 @@
 #cloud-config
 
-# Networking configuration
+################################################################################################
+# EXOSCALE USERDATA TEMPLATE                                                      PawCloud-XMR
+#===============================================================================================
+#
+#    Insert this into UserData when you make a new instance.  You only need one xmr proxy for
+#    pawcloud-xmr-proxy.  Your nodes should go into an instance pool, the node template is
+#    configured for you to automatically point at the head proxy node.
+#
+# Virtual machine settings:
+#
+#     Hostname:       pawcloud-proxy
+#     OS:             Ubuntu 20.04 LTS
+#     Instance Type:  Small  2 vCPU | GB 2 x 2198 MHz
+#     Disk:           10 GB
+#
+# These settings will need to be adjusted after the VM warms up:
+#
+#     Private Network:  pawcloud (if you don't have one, make one)
+#     Private Network Type:  Managed
+#     Private Network IP: 10.0.0.2
+#
+# Please note that warm up time on the proxy can take up to 30 minutes, as your xmr-node-proxy
+# is being built from source against the VM's kernel (for speed).  The trade off is worth the
+# performance benefit, as we are compiling against RedHat virtio/virtio-net modules here.
+#
+################################################################################################
+
+# Networking configuration - This makes the settings in the dash have no effect on cloud-init inside the vm
+#                            which is really what we want to do (i.e.: stop ourselfs from f**king things up!)
 preserve_hostname: false
 hostname: pawcloud-proxy
 
@@ -16,7 +44,9 @@ resolv_conf:
     rotate: true
     timeout: 1
 
-# Group and user configuration
+# Group and user configuration - I haven't had success modifying the default ubuntu user, it
+#                                seems to make exoscale's dash go BORK along with the ssh.
+#                                So we are just appending our app user.
 groups:
   - ubuntu [root,sys]
   - cloud-users
@@ -34,13 +64,13 @@ users:
     ssh_import_id: None
     lock_passwd: false
 
-# Filesystem configuration
+# Filesystem configuration - Basic growpart configuration for bigger instances.
 growpart:
     mode: auto
     devices: ["/"]
     ignore_growroot_disabled: false
 
-# Files to write.
+# Files to write - Netplan configuration and installation scripts for runcmd.
 write_files:
   - path: /etc/netplan/20-eth0_custom.yaml
     content: |
@@ -125,7 +155,7 @@ write_files:
             "coin": "xmr"
           }
         ],
-        "bindAddress": "0.0.0.0",
+        "bindAddress": "10.0.0.2",
         "daemonAddress": "127.0.0.1:18081",
         "coinSettings": {
           "xmr":{
@@ -142,12 +172,12 @@ write_files:
       full_path=$(realpath $0)
       rm -f $full_path
 
-# Package manager
+# Package manager - Make sure we have the most recent security updates.
 apt_update: true
 apt_upgrade: true
 apt_reboot_if_required: true
 
-# Commands to run
+# Commands to run - *Darude - Sandstorm plays*  This space intentionally left blank.
 runcmd:
   - [ netplan, apply ]
   - [ sh, -xc, "cp /etc/skel/.* /home/nodeproxy" ]
